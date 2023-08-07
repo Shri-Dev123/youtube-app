@@ -1,15 +1,36 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { toggleMenu } from "../utilities/appSlice";
-import { Link } from "react-router-dom";
+import { YOUTUBE_SEARCH_API } from "../constants/constant";
 
 const Header = () => {
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchSuggestions, setSearchSuggestions] = useState([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
     const dispatch = useDispatch();
     const toggleMenuHandler = () => {
         dispatch(toggleMenu());
     };
+
+    useEffect(() => {
+        let timer = setTimeout(() => {
+            getSearchedSuggestions();
+        }, 200);
+
+        return () => {
+            clearTimeout(timer);
+        };
+    }, [searchQuery]);
+
+    const getSearchedSuggestions = async () => {
+        setShowSuggestions(true);
+
+        const data = await fetch(YOUTUBE_SEARCH_API + searchQuery);
+        const json = await data.json();
+        setSearchSuggestions(json[1]);
+    };
     return (
-        <div className="grid grid-flow-col shadow-sm bg-white w-full fixed">
+        <div className="grid grid-flow-col shadow-sm bg-white w-full fixed z-10">
             <div className="col-span-2 flex gap-3">
                 <img
                     onClick={() => toggleMenuHandler()}
@@ -31,6 +52,10 @@ const Header = () => {
                     className="border w-3/4 p-3 h-10 mt-2 rounded-l-full border-gray-400"
                     type="text"
                     placeholder="Search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => setShowSuggestions(true)}
+                    onBlur={() => setShowSuggestions(false)}
                 />
                 <button>
                     <img
@@ -39,6 +64,27 @@ const Header = () => {
                         alt="search-icon"
                     />
                 </button>
+                {showSuggestions && searchQuery.length > 0 && (
+                    <div className="fixed bg-white w-2/4 mt-14 px-3 py-2 rounded-xl border border-gray-200">
+                        {searchSuggestions.length > 0
+                            ? searchSuggestions.map((suggestion, index) => (
+                                  <ul
+                                      key={index}
+                                      className="flex flex-row  hover:bg-gray-200 m-0 pl-1"
+                                  >
+                                      <img
+                                          className="h-3 w-3 mt-2 mr-2 hover:bg-gray-100"
+                                          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLS3SsGCqKLccokl5vCOakU4Lb5YItCxASZg&usqp=CAU"
+                                          alt="search-icon"
+                                      />
+                                      <li className="list-none cursor-default">
+                                          {suggestion}
+                                      </li>
+                                  </ul>
+                              ))
+                            : null}
+                    </div>
+                )}
             </div>
 
             <div className="flex mt-1.5 col-span-1">

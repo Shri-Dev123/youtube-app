@@ -3,7 +3,7 @@ import Button from "./Button";
 
 const ButtonsList = () => {
     return (
-        <div className="flex w-full mt-2 bg-white flex-row items-center fixed gap-3 ml-20 p-4">
+        <div className="flex w-full mt-2 bg-white flex-row items-center fixed gap-3 ml-20 p-4 z-0">
             <Button title={"All"} />
             <Button title={"React Router"} />
             <Button title={"Music"} />
