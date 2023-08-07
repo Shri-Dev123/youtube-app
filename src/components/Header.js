@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { toggleMenu } from "../utilities/appSlice";
 import { YOUTUBE_SEARCH_API } from "../constants/constant";
+import { cacheResults } from "../utilities/searchSlice";
 
 const Header = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [searchSuggestions, setSearchSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const searchCache = useSelector((store) => store.search);
     const dispatch = useDispatch();
     const toggleMenuHandler = () => {
         dispatch(toggleMenu());
@@ -14,7 +16,11 @@ const Header = () => {
 
     useEffect(() => {
         let timer = setTimeout(() => {
-            getSearchedSuggestions();
+            if (searchCache[searchQuery]) {
+                setSearchSuggestions(searchCache[searchQuery]);
+            } else {
+                getSearchedSuggestions();
+            }
         }, 200);
 
         return () => {
@@ -28,6 +34,11 @@ const Header = () => {
         const data = await fetch(YOUTUBE_SEARCH_API + searchQuery);
         const json = await data.json();
         setSearchSuggestions(json[1]);
+        dispatch(
+            cacheResults({
+                [searchQuery]: json[1],
+            })
+        );
     };
     return (
         <div className="grid grid-flow-col shadow-sm bg-white w-full fixed z-10">
@@ -66,7 +77,7 @@ const Header = () => {
                 </button>
                 {showSuggestions && searchQuery.length > 0 && (
                     <div className="fixed bg-white w-2/4 mt-14 px-3 py-2 rounded-xl border border-gray-200">
-                        {searchSuggestions.length > 0
+                        {searchSuggestions?.length > 0
                             ? searchSuggestions.map((suggestion, index) => (
                                   <ul
                                       key={index}
