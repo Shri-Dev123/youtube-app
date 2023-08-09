@@ -7,7 +7,8 @@ const chatSlice = createSlice({
     },
     reducers: {
         addMessage: (state, action) => {
-            state.messages = [...state.messages, ...[action.payload]];
+            state.messages.splice(200, 1); // it will remove the 1 last message for 50 messages
+            state.messages.unshift(action.payload);
         },
     },
 });
